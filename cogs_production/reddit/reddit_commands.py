@@ -25,7 +25,6 @@ class Reddit:
         if message.author == self.casper.user:
             return
         await self.subreddit_check(message)
-        return await self.casper.process_commands(message)
 
     async def subreddit_check(self, message: discord.Message):
         """
@@ -38,7 +37,7 @@ class Reddit:
         """
         # matches /r/subredditName between other words and at newline, but not if it's
         # preceded by any other text.
-        reg_exp = re.compile(r'\s(/r/+.[^ \n]*)')
+        reg_exp = re.compile(r'(/r/+.[^ \n]*)')
         match = reg_exp.findall(message.content)  # returns list of matches
         if match:
             names = [sub.replace('/r/', '') for sub in match]
@@ -46,7 +45,7 @@ class Reddit:
             for name in names:
                 try:
                     subreddit = self.reddit.subreddits.search_by_name(name, exact=True)
-                    output_str += f'<https://reddit.com/r/{name}>\n'
+                    output_str += f'<https://old.reddit.com/r/{name}>\n'
                 except prawcore.NotFound:
                     continue
             return await message.channel.send(

@@ -10,6 +10,8 @@ are uploaded here but nobody is perfect.
 # Features
 Casper comes with a variety of sub-modules such as:
 
+- Music player. This iteration is entirely thanks to [this user](https://gist.github.com/EvieePy/ab667b74e9758433b3eb806c53a19f34)
+while I continue working on the intricacies to modify it to my needs.
 - A dice parser. Ex: `casper roll 2d10+6`
 - A handy reminders module. Ex: `casper remindme 3 days How great is this bot?` will
 result in Casper reminding you in 3 days time how great he really is.

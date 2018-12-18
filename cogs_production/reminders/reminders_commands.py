@@ -17,7 +17,7 @@ class Reminder:
 
     async def get_reminders(self):
         """
-        Checks for new reminders every 60 seconds for every server the bot belongs to.
+        Checks for new reminders every 60 seconds for every server the casper belongs to.
         :return: None
         """
         await self.casper.wait_until_ready()

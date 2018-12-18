@@ -1,5 +1,6 @@
 # Don't track contents of these folders:
 memes/
+cogs_development/
 
 # Don't track contents of these files:
 **/*config*
