@@ -16,6 +16,8 @@ result in Casper reminding you in 3 days time how great he really is.
 - Video game account profiles. If an online game you play offers an API to retrieve game
 data, Casper can be used to aggregate that data into user-friendly outputs right into
 discord chat. 
+- [Subreddit](https://reddit.com) linking. If Casper detects a valid subreddit in a message,
+it'll reply with a link directly to that subreddit.
 
 # Installation
 You'll need to [setup your own bot credentials](https://discordapp.com/developers/applications/)
