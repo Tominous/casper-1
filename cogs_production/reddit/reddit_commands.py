@@ -28,25 +28,27 @@ class Reddit:
 
     async def subreddit_check(self, message: discord.Message):
         """
-        Checks incoming messages for partial subreddit names, such as /r/python. If it
+        Checks incoming messages for partial subreddit names, such as r/python. If it
         finds any possible subreddit names, it checks to see if a subreddit exists and,
         if so, creates a link for it to be sent. If a subreddit does not exist, it skips
         it.
         :param message: The discord message.
         :return: A message containing the subreddits, if any were found.
         """
-        # matches /r/subredditName between other words and at newline, but not if it's
-        # preceded by any other text.
-        reg_exp = re.compile(r'(/r/+.[^ \n]*)')
+        # matches /r/subredditName between other words and at newline but not if it's
+        # part of a URL
+        reg_exp = re.compile(r'((?<!.com/)r/[a-zA-Z]+(?![a-zA-Z0-9/]))')
         match = reg_exp.findall(message.content)  # returns list of matches
         if match:
-            names = [sub.replace('/r/', '') for sub in match]
+            names = [sub.replace('r/', '') for sub in match]
             output_str = ''
             for name in names:
                 try:
+                    # If we don't get the NotFound error, it's a valid subreddit.
                     subreddit = self.reddit.subreddits.search_by_name(name, exact=True)
                     output_str += f'<https://old.reddit.com/r/{name}>\n'
                 except prawcore.NotFound:
+                    # Invalid subreddit, skip to next name in list.
                     continue
             return await message.channel.send(
                 f'Found the following subreddits:\n\n{output_str}')

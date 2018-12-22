@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import Column, Date, Integer, String, DateTime
+from sqlalchemy import Column, Date, Integer, String, DateTime, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 from database.engine_session_initialization import engine
@@ -44,19 +44,35 @@ class Character(Base):
                 f'honor_level={self.honor_level})>\n\n')
 
 
-# class Fitness(Base):
-#     __tablename__ = 'fitness'
-#     user = Column(String, primary_key=True)
-#     gender = Column(String)
-#     height = Column(Integer)
-#     weight = Column(Integer)
-#     bench_press = Column(Integer)
-#     back_squat = Column(Integer)
-#     deadlift = Column(Integer)
-#     ohp = Column(Integer)
-#     mile = Column(String)
-#     row_2km = Column(String)
-#     burpess_1m = Column(Integer)
+class Fitness(Base):
+    __tablename__ = 'fitness'
+    user = Column(String, primary_key=True)
+    guild_id = Column(String, primary_key=True)
+    gender = Column(String)
+    height = Column(Float)
+    weight = Column(Float)
+    bench_press = Column(Float)
+    back_squat = Column(Float)
+    deadlift = Column(Float)
+    ohp = Column(Float)
+    wilks = Column(Float)
+    mile = Column(String)
+    row_2km = Column(String)
+    burpess_1m = Column(Integer)
+    plank = Column(String)
+
+    def __repr__(self):
+        return (f'<FitnessUser('
+                f'name={self.user},'
+                f'guild={self.guild_id})>')
+
+
+class CountdownEvents(Base):
+    __tablename__ = 'countdownevents'
+    id = Column(Integer, primary_key=True)
+    guild_id = Column(Integer)
+    event_name = Column(String)
+    event_date = Column(Date)
 
 
 class Reminders(Base):

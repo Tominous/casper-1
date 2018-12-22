@@ -3,7 +3,7 @@ from datetime import date, datetime
 from sqlalchemy import desc, asc
 
 from database.engine_session_initialization import Session
-from database.database_models import Character, Reminders
+from database.database_models import Character, Fitness, CountdownEvents, Reminders
 
 
 class CharactersDatabaseMethods:
@@ -174,7 +174,169 @@ class CharactersDatabaseMethods:
 
 
 class FitnessDatabaseMethods:
-    pass
+    @classmethod
+    async def get_user(cls, user, guild_id: int):
+        """
+        Checks to see if a user exists already. If not, it creates a new record. Returns
+        user record.
+        :param user: the user to fetch
+        :param guild_id: the id of the discord server the user belongs to
+        :return: the user record
+        """
+        session = Session()
+        fitness = session.query(Fitness).filter_by(user=user.lower(),
+                                                   guild_id=guild_id).first()
+        if fitness is None:
+            fitness = Fitness()
+            fitness.user = user.lower()
+            fitness.guild_id = guild_id
+            session.close()
+            return fitness
+        session.close()
+        return fitness
+
+    @classmethod
+    async def setgender(cls, user, guild_id: int, gender: str):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.gender = gender.lower()
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setheight(cls, user, guild_id: int, height: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.height = height
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setweight(cls, user, guild_id: int, weight: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.weight = weight
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setbench(cls, user, guild_id: int, weight: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.bench_press = weight
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setsquat(cls, user, guild_id: int, weight: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.back_squat = weight
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setdeadlift(cls, user, guild_id: int, weight: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.deadlift = weight
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setohp(cls, user, guild_id: int, weight: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.ohp = weight
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setmile(cls, user, guild_id: int, time: str):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.mile = time
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setrowing(cls, user, guild_id: int, time: str):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.row_2km = time
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setburpees(cls, user, guild_id: int, count: int):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.burpess_1m = count
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def setplank(cls, user, guild_id: int, time: str):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.plank = time
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def get_progress(cls, user, guild_id: int):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        session.add(fitness)
+        session.commit()
+        return fitness
+
+
+class CountdownEventsDatabaseMethods:
+    @classmethod
+    async def add_event(cls, guild_id: int, event_name: str, event_date: date):
+        session = Session()
+        event = CountdownEvents()
+        event.guild_id = guild_id
+        event.event_name = event_name
+        event.event_date = event_date
+        session.add(event)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def remove_event(cls, guild_id: int, event_id):
+        session = Session()
+        event = session.query(CountdownEvents).filter_by(id=event_id,
+                                                         guild_id=guild_id).first()
+        session.delete(event)
+        session.commit()
+        session.close()
+
+    @classmethod
+    async def get_event(cls, guild_id: int, event_name: str):
+        session = Session()
+        event = session.query(CountdownEvents).filter_by(guild_id=guild_id).filter(
+            CountdownEvents.event_name.ilike(f'%{event_name}%')).order_by(
+            asc(CountdownEvents.event_date)).all()
+        return event
+
+    @classmethod
+    async def get_all_events(cls, guild_id: int):
+        session = Session()
+        events = session.query(CountdownEvents).filter_by(guild_id=guild_id).all()
+        return events
 
 
 class RemindersDatabaseMethods:
@@ -189,6 +351,7 @@ class RemindersDatabaseMethods:
         reminder.when = reminder_time
         session.add(reminder)
         session.commit()
+        session.close()
 
     @classmethod
     async def get_reminders(cls, guild_id):
@@ -203,3 +366,4 @@ class RemindersDatabaseMethods:
         reminder = session.query(Reminders).filter_by(id=reminder_id).first()
         session.delete(reminder)
         session.commit()
+        session.close()

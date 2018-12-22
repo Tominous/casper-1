@@ -7,7 +7,7 @@ import asyncio
 import datetime
 
 from discord.ext import commands
-from database.database import RemindersDatabaseMethods
+from database.database import RemindersDatabaseMethods, CountdownEventsDatabaseMethods
 
 
 class Reminder:
@@ -73,6 +73,51 @@ class Reminder:
                                                     reminder_time)
         return await ctx.send(f'I will be reminding you about:\n{reminder_msg}\non\n'
                               f'{reminder_time}.')
+
+    @commands.command()
+    async def addevent(self, ctx, event_date: str, *, event_name: str):
+        usage_msg = ('Please format your date as MM/DD/YYYY.\n'
+                     'Ex: casper addevent 01/01/2019 Happy New Year!')
+        if '/' not in event_date:
+            return await ctx.send(usage_msg)
+        try:
+            month, day, year = event_date.split('/')
+            month = int(month)
+            day = int(day)
+            year = int(year)
+        except ValueError:
+            return await ctx.send(usage_msg)
+        if 0 < month < 13 and 0 < day < 32 and 0 < year < 100000:
+            event_date = datetime.date(year, month, day)
+            await CountdownEventsDatabaseMethods.add_event(
+                ctx.guild.id, event_name, event_date)
+            return await ctx.send(f'Countdown for {event_name} on {event_date} created.')
+        else:
+            return await ctx.send(usage_msg)
+
+    @commands.command()
+    async def countdown(self, ctx, *, event_name: str=None):
+        if event_name:
+            events = await CountdownEventsDatabaseMethods.get_event(
+                ctx.guild.id, event_name)
+        else:
+            events = await CountdownEventsDatabaseMethods.get_all_events(ctx.guild.id)
+        if events:
+            output_str = ''
+            for event in events:
+                days_til_event = (event.event_date - datetime.date.today()).days
+                if days_til_event < 0:
+                    await CountdownEventsDatabaseMethods.remove_event(ctx.guild.id,
+                                                                      event.id)
+                    output_str += (f'The event "{event.event_name}" has passed and '
+                                   f'has been removed from the countdown tracker.')
+                    continue
+                output_str += (f'There are {days_til_event} days left until '
+                               f'{event.event_name}.\n\n')
+            return await ctx.send(output_str)
+        else:
+            return await ctx.send('Could not find any events for this server matching '
+                                  'your query.')
 
 
 def setup(casper):

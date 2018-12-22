@@ -71,7 +71,7 @@ async def on_command(ctx):
 
 
 @casper.command()
-async def add(ctx, cog_dir, cog_name):
+async def load(ctx, cog_dir, cog_name):
     if ctx.author.id == casper.owner_id:
         casper.load_extension(f'cogs_development.{cog_dir}.{cog_name}')
         return await ctx.send(f'Loaded: cogs.{cog_dir}.{cog_name}')
