@@ -49,7 +49,7 @@ class Reddit:
                     output_str += f'<https://old.reddit.com/r/{name}>\n'
                 except prawcore.NotFound:
                     # Invalid subreddit, skip to next name in list.
-                    continue
+                    output_str += f'"{name}" is not a subreddit.'
             return await message.channel.send(
                 f'Found the following subreddits:\n\n{output_str}')
         return
