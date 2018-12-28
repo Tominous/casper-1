@@ -9,7 +9,7 @@ bot_prefix = commands.when_mentioned_or('Casper ', 'casper ')
 bot_description = """Casper is a Discord casper with a focus on character data
                   aggregation for Blizzard Entertainment franchises."""
 casper = commands.Bot(command_prefix=bot_prefix, description=bot_description,
-                      owner_id=213665551988293632, pm_help=True)
+                      owner_id=Casper.OWNER_ID, pm_help=True)
 
 
 @casper.event
@@ -41,16 +41,17 @@ async def on_member_join(member):
     :param member:
     :return:
     """
+    await member.send(content=f'Welcome to the {member.guild.name} discord! I\'m '
+                              'Casper, a bot with a number of features available. '
+                              'If you need help with any of my commands, just type '
+                              '`casper help`.')
     for channel in member.guild.text_channels:
         if 'general' in channel.name:
             ch = channel
     try:
-        await member.send(content='Welcome to the Felforged discord! I\'m '
-                                  'Casper, a casper focused on displaying character '
-                                  'information for World of Warcraft. If you need help '
-                                  'with any of my commands, just type `casper help`.')
         return await ch.send(f'{member.name} has joined the server.')
     except TypeError:
+        # We were unable to find a "general chat"-type channel to send to.
         return
 
 
@@ -72,6 +73,13 @@ async def on_command(ctx):
 
 @casper.command()
 async def load(ctx, cog_dir, cog_name):
+    """
+    Used to load cogs currently under development to avoid rebooting casper.
+    :param ctx: invocation context.
+    :param cog_dir: name of the directory the cog.py file is located.
+    :param cog_name: name of the cog.py file.
+    :return: A message confirming the cog was loaded.
+    """
     if ctx.author.id == casper.owner_id:
         casper.load_extension(f'cogs_development.{cog_dir}.{cog_name}')
         return await ctx.send(f'Loaded: cogs.{cog_dir}.{cog_name}')

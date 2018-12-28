@@ -37,7 +37,7 @@ class Reddit:
         """
         # matches /r/subredditName between other words and at newline but not if it's
         # part of a URL
-        reg_exp = re.compile(r'((?<!.com/)r/[a-zA-Z]+(?![a-zA-Z0-9/]))')
+        reg_exp = re.compile(r'((?<!.com/)r/[a-zA-Z_]+(?![a-zA-Z0-9/]))')
         match = reg_exp.findall(message.content)  # returns list of matches
         if match:
             names = [sub.replace('r/', '') for sub in match]

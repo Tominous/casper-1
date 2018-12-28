@@ -16,8 +16,9 @@ class Dice:
     @commands.command()
     async def roll(self, ctx, *, text):
         """
-        Enter a single number as the 1-? limit or a string: 2d10+1d6+4+1d4-2
+        Enter a single number as the 1-? limit: 20, or a string: 2d10+1d6+4+1d4-2
         """
+        # TODO: Document this better.
         if 'd' in text:  # 2d10+1d6+4+1d4-2
             result = 0
             pos_rolls = text.split('+')
