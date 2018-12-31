@@ -45,15 +45,17 @@ async def get_raiderio_data(name: str, realm: str = 'wyrmrest-accord', region: s
 
 
 async def get_blizzard_data(name: str, realm: str = 'wyrmrest-accord', region: str = 'us'):
-    url = (f'https://{region}.api.battle.net/wow/character/{realm}/'
-           f'{parse.quote(name).lower()}?'
-           f'fields=guild,items,pvp,achievements&locale=en_US'
-           f'&apikey={BlizzardAPI.BLIZZARD_API_KEY}')
-    try:
-        return await utilities.json_get(url)
-    except Exception as e:
-        print(f'Error while fetching Blizzard data:\n{e}')
-        return None
+    token = await get_blizzard_access_token()
+    if token is not None:
+        url = (f'https://{region}.api.blizzard.com/wow/character/{realm}/'
+               f'{parse.quote(name).lower()}?'
+               f'fields=guild,items,pvp,achievements&locale=en_US'
+               f'&access_token={token["access_token"]}')
+        try:
+            return await utilities.json_get(url)
+        except Exception as e:
+            print(f'Error while fetching Blizzard data:\n{e}')
+            return None
 
 
 async def convert_utc_to_local(utc_time):
@@ -84,7 +86,7 @@ async def scrape_prestige(name: str, realm: str = 'wyrmrest-accord', region: str
 async def get_blizzard_token_price(region: str = 'us'):
     token = await get_blizzard_access_token()
     if token is not None:
-        url = (f'https://{region}.api.battle.net/data/wow/token/'
+        url = (f'https://{region}.api.blizzard.com/data/wow/token/'
                f'?namespace={WarcraftMedia.region_codes[region]["namespace"]}'
                f'&locale={WarcraftMedia.region_codes[region]["locale"]}'
                f'&access_token={token["access_token"]}')
@@ -100,20 +102,22 @@ async def get_blizzard_token_price(region: str = 'us'):
 
 async def get_guild_members(guild_name: str='felforged-covenant', realm: str='wyrmrest-accord',
                             ranks: list=None):
-    url = (f'https://us.api.battle.net/wow/guild/wyrmrest-accord/'
-           f'{parse.quote(guild_name.replace("-", " "))}?fields=members&locale=en_US'
-           f'&apikey={BlizzardAPI.BLIZZARD_API_KEY}')
-    results = await utilities.json_get(url)
-    if results is None:
-        return None
-    if ranks is None:
-        members = [(member['character']['name'], member['character']['realm'], member['rank']) for member in results['members']
-                   if member['character']['level'] == 120]
-    else:
-        members = [(member['character']['name'], member['character']['realm'], member['rank']) for member in results['members']
-                   if member['rank'] in ranks and member['character']['level'] == 120]
-        members = sorted(members, key=itemgetter(2))
-    return members
+    token = await get_blizzard_access_token()
+    if token is not None:
+        url = (f'https://us.api.blizzard.com/wow/guild/{realm}/'
+               f'{parse.quote(guild_name.replace("-", " "))}?fields=members&locale=en_US'
+               f'&access_token={token["access_token"]}')
+        results = await utilities.json_get(url)
+        if results is None:
+            return None
+        if ranks is None:
+            members = [(member['character']['name'], member['character']['realm'], member['rank']) for member in results['members']
+                       if member['character']['level'] == 120]
+        else:
+            members = [(member['character']['name'], member['character']['realm'], member['rank']) for member in results['members']
+                       if member['rank'] in ranks and member['character']['level'] == 120]
+            members = sorted(members, key=itemgetter(2))
+        return members
 
 
 async def get_mplus_counts(names: str):
@@ -130,7 +134,7 @@ async def get_mplus_counts(names: str):
         char_mplus_runs = 0
         char_wqs = 0
         char_boss_kills = 0
-        character_url = (f'https://us.api.battle.net/wow/character/'
+        character_url = (f'https://us.api.blizzard.com/wow/character/'
                          f'wyrmrest-accord/{name.lower()}'
                          f'?fields=achievements,progression'
                          f'&locale=en_US'

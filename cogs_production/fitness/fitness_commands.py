@@ -6,7 +6,7 @@ Purpose:        Defines all commands for the Fitness module
 import decimal
 
 from discord.ext import commands
-from database.database import FitnessDatabaseMethods
+from database.fitness import FitnessDatabaseMethods
 
 
 class Fitness:
