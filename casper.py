@@ -6,7 +6,7 @@ from discord.ext import commands
 from config import Casper
 
 bot_prefix = commands.when_mentioned_or('Casper ', 'casper ')
-bot_description = """Casper is a Discord casper with a focus on character data
+bot_description = """Casper is a Discord bot with a focus on character data
                   aggregation for Blizzard Entertainment franchises."""
 casper = commands.Bot(command_prefix=bot_prefix, description=bot_description,
                       owner_id=Casper.OWNER_ID, pm_help=True)
@@ -75,10 +75,10 @@ async def on_command(ctx):
 async def load(ctx, cog_dir, cog_name):
     """
     Used to load cogs currently under development to avoid rebooting casper.
-    :param ctx: invocation context.
-    :param cog_dir: name of the directory the cog.py file is located.
-    :param cog_name: name of the cog.py file.
-    :return: A message confirming the cog was loaded.
+    :param ctx: invocation context
+    :param cog_dir: name of the directory the cog.py file is located
+    :param cog_name: name of the cog.py file
+    :return: A messaghe
     """
     if ctx.author.id == casper.owner_id:
         casper.load_extension(f'cogs_development.{cog_dir}.{cog_name}')

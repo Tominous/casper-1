@@ -6,14 +6,12 @@ Purpose:        Defines all commands for the Warcraft module
 
 import discord
 import requests
-import schedule
-import time
+from cogs_development.warcraft.warcraft_config import WarcraftMedia
 from discord.ext import commands
 
 from cogs_production.warcraft import warcraft_logic
-from cogs_production.warcraft.warcraft_config import WarcraftMedia
 # import database, which imports engine and the models, which instantiates everything
-from database.database import CharactersDatabaseMethods
+from database.warcraftcharacters import WarcraftCharactersDatabaseMethods
 
 
 class Warcraft:
@@ -25,7 +23,7 @@ class Warcraft:
         @self.casper.event
         async def on_message(msg):
             if msg.author.id in self.blacklist_ids:
-                return  # await msg.channel.send('Sorry, only no-lifes can use Casper.')
+                return
             await self.casper.process_commands(msg)
 
     @commands.command()
@@ -51,12 +49,12 @@ class Warcraft:
                 raiderio_data = await warcraft_logic.get_raiderio_data(name, realm, 'us')
                 blizzard_data = await warcraft_logic.get_blizzard_data(name, realm, 'us')
                 honor_level = await warcraft_logic.scrape_prestige(name, realm)
-                if await CharactersDatabaseMethods.character_exists(name, realm):
-                    await CharactersDatabaseMethods.update_character(raiderio_data, blizzard_data, honor_level, rank)
+                if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
+                    await WarcraftCharactersDatabaseMethods.update_character(raiderio_data, blizzard_data, honor_level, rank)
                 else:
-                    await CharactersDatabaseMethods.create_new_character(raiderio_data, blizzard_data, honor_level, rank)
+                    await WarcraftCharactersDatabaseMethods.create_new_character(raiderio_data, blizzard_data, honor_level, rank)
                 if 'yes' in claim.lower():
-                    await CharactersDatabaseMethods.claim_character(name, realm, ctx.guild.id)
+                    await WarcraftCharactersDatabaseMethods.claim_character(name, realm, ctx.guild.id)
             except Exception as e:
                 print('Error: ', e)
             char_index += 1
@@ -87,10 +85,10 @@ class Warcraft:
         # print(raiderio_data)
         # print(blizzard_data)
         honor_level = await warcraft_logic.scrape_prestige(name, realm, region)
-        if await CharactersDatabaseMethods.character_exists(name, realm):
-            await CharactersDatabaseMethods.update_character(raiderio_data, blizzard_data, honor_level)
+        if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
+            await WarcraftCharactersDatabaseMethods.update_character(raiderio_data, blizzard_data, honor_level)
         else:
-            await CharactersDatabaseMethods.create_new_character(raiderio_data, blizzard_data, honor_level)
+            await WarcraftCharactersDatabaseMethods.create_new_character(raiderio_data, blizzard_data, honor_level)
         embed_obj = await warcraft_logic.build_embed_obj(raiderio_data, blizzard_data, honor_level)
         return await status_msg.edit(content='', embed=embed_obj)
 
@@ -104,7 +102,7 @@ class Warcraft:
         """
         ranks = [0, 1, 3, 7]
         sent_msg = await ctx.send('Fetching raiders and trials...')
-        guild_members = await CharactersDatabaseMethods.get_raiders(ctx.guild.id, ranks, sort_by)
+        guild_members = await WarcraftCharactersDatabaseMethods.get_raiders(ctx.guild.id, ranks, sort_by)
         await sent_msg.edit(content='Parsing data...')
         output_msg_text = await warcraft_logic.build_readycheck(guild_members)
         return await sent_msg.edit(content=output_msg_text)
@@ -123,8 +121,8 @@ class Warcraft:
 
     @commands.command()
     async def claim(self, ctx, name: str, realm: str='wyrmrest-accord'):
-        if await CharactersDatabaseMethods.character_exists(name, realm):
-            await CharactersDatabaseMethods.claim_character(name, realm, ctx.guild.id)
+        if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
+            await WarcraftCharactersDatabaseMethods.claim_character(name, realm, ctx.guild.id)
             return await ctx.send(f'{name.title()}-{realm.replace("-", " ").capitalize()} has been claimed.')
         else:
             return await ctx.send(f'{name.title()}-{realm.replace("-", " ").capitalize()} has not been seen yet.)')
@@ -137,7 +135,7 @@ class Warcraft:
         :param ctx:
         :return:
         """
-        characters = await CharactersDatabaseMethods.get_scores(ctx.guild.id)
+        characters = await WarcraftCharactersDatabaseMethods.get_scores(ctx.guild.id)
         if num > 25:
             num = 25
         if len(characters) > 0:
@@ -152,7 +150,7 @@ class Warcraft:
         :param ctx:
         :return:
         """
-        characters = await CharactersDatabaseMethods.get_honor_levels(ctx.guild.id)
+        characters = await WarcraftCharactersDatabaseMethods.get_honor_levels(ctx.guild.id)
         if num > 25:
             num = 25
         if len(characters) > 0:
@@ -178,23 +176,23 @@ class Warcraft:
             for key in WarcraftMedia.m_plus_abbreviations_bfa.keys():
                 out_str += f'{key}, '
             return await ctx.send(out_str)
-        if await CharactersDatabaseMethods.character_exists(name, 'wyrmrest-accord'):
-            await CharactersDatabaseMethods.add_key(name, dungeon_name, level)
+        if await WarcraftCharactersDatabaseMethods.character_exists(name, 'wyrmrest-accord'):
+            await WarcraftCharactersDatabaseMethods.add_key(name, dungeon_name, level)
         else:
             return await ctx.send('That character does not exist.')
         return await ctx.invoke(self.keys)
 
     @commands.command()
     async def removekey(self, ctx, name: str):
-        if await CharactersDatabaseMethods.character_exists(name, 'wyrmrest-accord'):
-            await CharactersDatabaseMethods.remove_key(name)
+        if await WarcraftCharactersDatabaseMethods.character_exists(name, 'wyrmrest-accord'):
+            await WarcraftCharactersDatabaseMethods.remove_key(name)
             return await ctx.invoke(self.keys)
         else:
             return await ctx.send('Character not found.')
 
     @commands.command()
     async def keys(self, ctx):
-        characters = await CharactersDatabaseMethods.get_keys(ctx.guild.id)
+        characters = await WarcraftCharactersDatabaseMethods.get_keys(ctx.guild.id)
         if len(characters) > 0:
             desc = f'{"Character:":{14}}{"Dungeon:":{27}}{"Level:":{6}}\n' \
                    f'------------------------------------------------\n'
@@ -206,7 +204,7 @@ class Warcraft:
 
     @commands.command()
     async def resetkeys(self, ctx):
-        await CharactersDatabaseMethods.reset_keys()
+        await WarcraftCharactersDatabaseMethods.reset_keys()
         return await ctx.send('Key info has been reset.')
 
     @commands.command()
@@ -215,7 +213,7 @@ class Warcraft:
             token_price = await warcraft_logic.get_blizzard_token_price(region)
             if token_price is not None:
                 return await ctx.send(f'Tokens currently cost {token_price:,} gold in the'
-                                      f' {region.upper()} region. Good luck.')
+                                      f' {region.upper()} region.')
         except KeyError as e:
             return await ctx.send('Could not retrieve token price for that region. '
                                   'Possible regions are: ```us, eu, tw, kr```')
