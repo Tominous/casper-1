@@ -6,7 +6,7 @@ Purpose:        Defines all commands for the Warcraft module
 
 import discord
 import requests
-from cogs_development.warcraft.warcraft_config import WarcraftMedia
+from cogs_production.warcraft.warcraft_config import WarcraftMedia
 from discord.ext import commands
 
 from cogs_production.warcraft import warcraft_logic

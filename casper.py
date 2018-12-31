@@ -48,6 +48,7 @@ async def on_member_join(member):
     for channel in member.guild.text_channels:
         if 'general' in channel.name:
             ch = channel
+            break
     try:
         return await ch.send(f'{member.name} has joined the server.')
     except TypeError:
@@ -83,6 +84,20 @@ async def load(ctx, cog_dir, cog_name):
     if ctx.author.id == casper.owner_id:
         casper.load_extension(f'cogs_development.{cog_dir}.{cog_name}')
         return await ctx.send(f'Loaded: cogs.{cog_dir}.{cog_name}')
+
+
+@casper.command()
+async def broadcast(ctx, *, msg: str):
+    if ctx.author.id == casper.owner_id:
+        broadcast_msg_format = (
+            f'**__What\'s New:__**\n\n'
+            f'{msg}'
+        )
+        for guild in casper.guilds:
+            for channel in guild.text_channels:
+                if 'general' in channel.name:
+                    await channel.send(broadcast_msg_format)
+                    break  # We just want the first general chat.
 
 
 if __name__ == '__main__':
