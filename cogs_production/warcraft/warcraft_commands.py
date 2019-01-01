@@ -108,14 +108,17 @@ class Warcraft:
         return await sent_msg.edit(content=output_msg_text)
 
     @commands.command()
-    async def mplus(self, ctx, *, names: str):
+    async def mplus(self, ctx, *, names: str=None):
         """
         Given a space-separated list of character names, will lookup how many mythic
         plus, world quests, and raid bosses the characters have killed.
         :param ctx:
-        :param names:
+        :param names: The names of characters to look up.
         :return:
         """
+        if names is None:
+            return await ctx.send('You need to enter at least one character name to '
+                                  'fetch counts.')
         output = await warcraft_logic.get_mplus_counts(names)
         return await ctx.send(output)
 
@@ -186,6 +189,7 @@ class Warcraft:
     async def removekey(self, ctx, name: str):
         if await WarcraftCharactersDatabaseMethods.character_exists(name, 'wyrmrest-accord'):
             await WarcraftCharactersDatabaseMethods.remove_key(name)
+            await ctx.send(f'Key info removed for {name.title()}.')
             return await ctx.invoke(self.keys)
         else:
             return await ctx.send('Character not found.')
@@ -201,6 +205,8 @@ class Warcraft:
                         f'{character.m_plus_key:{27}} ' \
                         f'+{character.m_plus_key_level:<{6}}\n'
             await ctx.send(f'```{desc}```')
+        else:
+            return await ctx.send('No keys found for this server.')
 
     @commands.command()
     async def resetkeys(self, ctx):
@@ -210,7 +216,7 @@ class Warcraft:
     @commands.command()
     async def token(self, ctx, region: str='us'):
         try:
-            token_price = await warcraft_logic.get_blizzard_token_price(region)
+            token_price = await warcraft_logic.get_blizzard_token_price(region.lower())
             if token_price is not None:
                 return await ctx.send(f'Tokens currently cost {token_price:,} gold in the'
                                       f' {region.upper()} region.')

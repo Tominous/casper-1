@@ -38,8 +38,8 @@ async def on_member_join(member):
     """
     Whispers new members with an intro to Casper. Alerts the server to the new member
     joining.
-    :param member:
-    :return:
+    :param member: The newly joined member
+    :return: A welcome message if it can find a suitable channel, else None
     """
     await member.send(content=f'Welcome to the {member.guild.name} discord! I\'m '
                               'Casper, a bot with a number of features available. '
@@ -79,7 +79,7 @@ async def load(ctx, cog_dir, cog_name):
     :param ctx: invocation context
     :param cog_dir: name of the directory the cog.py file is located
     :param cog_name: name of the cog.py file
-    :return: A messaghe
+    :return: A message confirming the cog loaded.
     """
     if ctx.author.id == casper.owner_id:
         casper.load_extension(f'cogs_development.{cog_dir}.{cog_name}')
@@ -88,6 +88,14 @@ async def load(ctx, cog_dir, cog_name):
 
 @casper.command()
 async def broadcast(ctx, *, msg: str):
+    """
+    This is a command to be used sparingly by the bot owner to push breaking info that
+    may affect users. It will search for a single "general" chat channel on every server
+    the bot belongs to and send the passed in msg param.
+    :param ctx: Invoked context.
+    :param msg: The message to be sent to the servers.
+    :return: None
+    """
     if ctx.author.id == casper.owner_id:
         broadcast_msg_format = (
             f'**__What\'s New:__**\n\n'
