@@ -51,7 +51,7 @@ class Reddit:
                     # Invalid subreddit, skip to next name in list.
                     output_str += f'"{name}" is not a subreddit.'
             return await message.channel.send(
-                f'Found the following subreddits:\n\n{output_str}')
+                f'{output_str}')
         return
 
 
