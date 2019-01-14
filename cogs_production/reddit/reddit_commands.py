@@ -35,9 +35,10 @@ class Reddit:
         :param message: The discord message.
         :return: A message containing the subreddits, if any were found.
         """
-        # matches /r/subredditName between other words and at newline but not if it's
-        # part of a URL
-        reg_exp = re.compile(r'((?<!.com/)r/[a-zA-Z_]+(?![a-zA-Z0-9/]))')
+        # (?<!.com/) : do not match if part of reddit url
+        # (?<!\w) : do not match if a 'r/' found in a message such as 'over/under'
+        # [\w]+ : matches a-z, A-Z, 0-9, _
+        reg_exp = re.compile(r'((?<!.com/)(?<!\w)r/[\w]+)')
         match = reg_exp.findall(message.content)  # returns list of matches
         if match:
             names = [sub.replace('r/', '') for sub in match]

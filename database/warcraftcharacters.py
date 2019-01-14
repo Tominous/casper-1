@@ -88,6 +88,15 @@ class WarcraftCharactersDatabaseMethods:
         session.commit()
 
     @classmethod
+    async def unclaim_character(cls, name: str, realm: str, guild_id: int):
+        session = Session()
+        character = session.query(Character).filter_by(
+            name=name.lower(), realm=realm.replace(' ', '-').lower()).first()
+        character.claimed_on = guild_id
+        session.delete(character)
+        session.commit()
+
+    @classmethod
     async def get_claimed_characters(cls, guild_id: int):
         session = Session()
         results = session.query(Character).filter_by(

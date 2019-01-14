@@ -24,7 +24,6 @@ async def get_blizzard_access_token():
            f'&client_secret={BlizzardAPI.CLIENT_SECRET}')
     try:
         token = await utilities.json_get(url)
-        print(f'Blizzard access token generated successfully.')
         return token
     except KeyError as e:
         print(f'Error attempting to generate access token:\n{e}')

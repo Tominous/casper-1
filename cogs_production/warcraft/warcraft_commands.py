@@ -126,9 +126,17 @@ class Warcraft:
     async def claim(self, ctx, name: str, realm: str='wyrmrest-accord'):
         if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
             await WarcraftCharactersDatabaseMethods.claim_character(name, realm, ctx.guild.id)
-            return await ctx.send(f'{name.title()}-{realm.replace("-", " ").capitalize()} has been claimed.')
+            return await ctx.send(f'{name.title()}-{realm.replace("-", " ").title()} has been claimed.')
         else:
-            return await ctx.send(f'{name.title()}-{realm.replace("-", " ").capitalize()} has not been seen yet.)')
+            return await ctx.send(f'{name.title()}-{realm.replace("-", " ").title()} has not been seen yet.)')
+
+    @commands.command()
+    async def unclaim(self, ctx, name: str, realm: str='wyrmrest-accord'):
+        if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
+            await WarcraftCharactersDatabaseMethods.unclaim_character(name, realm, ctx.guild.id)
+            return await ctx.send(f'{name.title()}-{realm.replace("-", " ").title()} has been banished.')
+        else:
+            return await ctx.send(f'{name.title()}-{realm.replace("-", " ").title()} has not been seen yet.)')
 
     @commands.command()
     async def scores(self, ctx, num=10):
