@@ -60,6 +60,7 @@ class Fitness(Base):
     row_2km = Column(String)
     burpess_1m = Column(Integer)
     plank = Column(String)
+    goal_weight = Column(Float)
 
     def __repr__(self):
         return (f'<FitnessUser('

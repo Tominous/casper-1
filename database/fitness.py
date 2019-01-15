@@ -52,6 +52,15 @@ class FitnessDatabaseMethods:
         session.close()
 
     @classmethod
+    async def setgoalweight(cls, user, guild_id: int, weight: float):
+        session = Session()
+        fitness = await cls.get_user(user.lower(), guild_id)
+        fitness.goal_weight = weight
+        session.add(fitness)
+        session.commit()
+        session.close()
+
+    @classmethod
     async def setbench(cls, user, guild_id: int, weight: float):
         session = Session()
         fitness = await cls.get_user(user.lower(), guild_id)

@@ -80,6 +80,14 @@ class Fitness:
             return await ctx.send('Please enter your weight in pounds.')
 
     @commands.command()
+    async def setgoalweight(self, ctx, weight):
+        try:
+            await FitnessDatabaseMethods.setgoalweight(ctx.author.name, ctx.guild.id, float(weight))
+            return await ctx.send(f'Goal weight set for {ctx.author.name.title()}.')
+        except ValueError:
+            return await ctx.send('Please enter your weight in pounds.')
+
+    @commands.command()
     async def setbench(self, ctx, weight):
         """
         Set how much you bench.
@@ -205,8 +213,10 @@ class Fitness:
         fitness_user = await FitnessDatabaseMethods.get_progress(user, ctx.guild.id)
         output_str = f'**__Current Progress for {fitness_user.user.title()}:__**\n'
         try:
-            output_str += (f'{fitness_user.gender.title()} / {fitness_user.height} in. / '
-                           f'{fitness_user.weight} lbs\n\n'
+            output_str += (f'{fitness_user.gender.title()}\n'
+                           f'{fitness_user.height} in.\n'
+                           f'Current Weight: {fitness_user.weight} lbs\n'
+                           f'Goal Weight: {fitness_user.goal_weight} lbs\n\n'
                            f'Bench: {fitness_user.bench_press} lbs **|** '
                            f'Squat: {fitness_user.back_squat} lbs **|** '
                            f'Deadlift: {fitness_user.deadlift} lbs **|** '
