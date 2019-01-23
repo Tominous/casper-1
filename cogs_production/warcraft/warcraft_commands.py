@@ -17,14 +17,6 @@ from database.warcraftcharacters import WarcraftCharactersDatabaseMethods
 class Warcraft:
     def __init__(self, casper):
         self.casper = casper
-        self.blacklist_ids = [228366233504972810]  # aiirie
-        self.blacklist_names = ['illyre', 'aiirie']
-
-        @self.casper.event
-        async def on_message(msg):
-            if msg.author.id in self.blacklist_ids:
-                return
-            await self.casper.process_commands(msg)
 
     @commands.command()
     async def crawl(self, ctx, claim: str='no', guild_name: str='felforged',
@@ -43,8 +35,6 @@ class Warcraft:
             return await message.edit(content='Could not fetch members from Blizzard.')
         char_index = 1
         for name, realm, rank in guild_members:
-            if name.lower() in self.blacklist_names:
-                continue
             try:
                 raiderio_data = await warcraft_logic.get_raiderio_data(name, realm, 'us')
                 blizzard_data = await warcraft_logic.get_blizzard_data(name, realm, 'us')

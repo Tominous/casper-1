@@ -1,9 +1,10 @@
-from datetime import datetime
+import datetime
 from pathlib import Path
 
 from discord.ext import commands
 
 from config import Casper
+from checks import Checks
 
 bot_prefix = commands.when_mentioned_or('Casper ', 'casper ')
 bot_description = """Casper is a Discord bot with a focus on character data
@@ -15,7 +16,7 @@ casper = commands.Bot(command_prefix=bot_prefix, description=bot_description,
 @casper.event
 async def on_ready():
     print('====================================\n'
-          f'Started at: {datetime.now()}\n'
+          f'Started at: {datetime.datetime.now()}\n'
           f'Bot name: {casper.user.name}\n'
           f'Bot ID: {casper.user.id}\n'
           f'Owner name: {casper.get_user(casper.owner_id).name}\n'
@@ -68,44 +69,20 @@ async def on_command(ctx):
           f'Server: {ctx.guild}\n'
           f'Channel: {ctx.message.channel}\n'
           f'Command: {ctx.message.content}\n'
-          f'Time: {datetime.now().time()}\n')
+          f'Time: {datetime.datetime.now().time()}\n')
     return
 
 
-@casper.command()
-async def load(ctx, cog_dir, cog_name):
-    """
-    Used to load cogs currently under development to avoid rebooting casper.
-    :param ctx: invocation context
-    :param cog_dir: name of the directory the cog.py file is located
-    :param cog_name: name of the cog.py file
-    :return: A message confirming the cog loaded.
-    """
-    if ctx.author.id == casper.owner_id:
-        casper.load_extension(f'cogs_development.{cog_dir}.{cog_name}')
-        return await ctx.send(f'Loaded: cogs.{cog_dir}.{cog_name}')
+@casper.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        return await ctx.send(f'I\'m sorry, {ctx.author.name}, but you are currently '
+                              'banned from using any commands.')
 
 
-@casper.command()
-async def broadcast(ctx, *, msg: str):
-    """
-    This is a command to be used sparingly by the bot owner to push breaking info that
-    may affect users. It will search for a single "general" chat channel on every server
-    the bot belongs to and send the passed in msg param.
-    :param ctx: Invoked context.
-    :param msg: The message to be sent to the servers.
-    :return: None
-    """
-    if ctx.author.id == casper.owner_id:
-        broadcast_msg_format = (
-            f'**__What\'s New:__**\n\n'
-            f'{msg}'
-        )
-        for guild in casper.guilds:
-            for channel in guild.text_channels:
-                if 'general' in channel.name:
-                    await channel.send(broadcast_msg_format)
-                    break  # We just want the first general chat.
+@casper.check
+async def block_banned_users(ctx):
+    return await Checks.user_not_banned(ctx)
 
 
 if __name__ == '__main__':

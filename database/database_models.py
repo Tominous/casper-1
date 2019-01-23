@@ -86,4 +86,13 @@ class Reminders(Base):
     when = Column(DateTime)
 
 
+class Bans(Base):
+    __tablename__ = 'bans'
+    user = Column(String, primary_key=True)
+    banned_by = Column(String)
+    ban_reason = Column(String)
+    banned_on = Column(DateTime)
+    ban_time = Column(Integer)  # Hours
+
+
 Base.metadata.create_all(engine)

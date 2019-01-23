@@ -81,6 +81,12 @@ class Fitness:
 
     @commands.command()
     async def setgoalweight(self, ctx, weight):
+        """
+        Set your goal weight.
+        :param ctx:
+        :param weight:
+        :return:
+        """
         try:
             await FitnessDatabaseMethods.setgoalweight(ctx.author.name, ctx.guild.id, float(weight))
             return await ctx.send(f'Goal weight set for {ctx.author.name.title()}.')
