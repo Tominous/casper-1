@@ -129,46 +129,49 @@ async def get_mplus_counts(names: str):
     out_msg = ('```\n'
                f'{"Character":{14}}{"M+":<{5}}{"WQs":<{6}}'
                f'{"Bosses":<{7}}\n\n')
-    for name in names:
-        char_mplus_runs = 0
-        char_wqs = 0
-        char_boss_kills = 0
-        character_url = (f'https://us.api.blizzard.com/wow/character/'
-                         f'wyrmrest-accord/{name.lower()}'
-                         f'?fields=achievements,progression'
-                         f'&locale=en_US'
-                         f'&apikey={BlizzardAPI.BLIZZARD_API_KEY}')
-        results = await utilities.json_get(character_url)
-        try:
-            criteria_index = results['achievements']['criteria'].index(plus_2_achieve)
-            char_mplus_runs = results['achievements']['criteriaQuantity'][criteria_index]
-            total_num_runs += results['achievements']['criteriaQuantity'][criteria_index]
+    token = await get_blizzard_access_token()
+    if token is not None:
+        for name in names:
+            char_mplus_runs = 0
+            char_wqs = 0
+            char_boss_kills = 0
+            character_url = (f'https://us.api.blizzard.com/wow/character/'
+                             f'wyrmrest-accord/{name.lower()}'
+                             f'?fields=achievements,progression'
+                             f'&locale=en_US'
+                             f'&access_token={token["access_token"]}')
+            results = await utilities.json_get(character_url)
+            try:
+                criteria_index = results['achievements']['criteria'].index(plus_2_achieve)
+                char_mplus_runs = results['achievements']['criteriaQuantity'][criteria_index]
+                total_num_runs += results['achievements']['criteriaQuantity'][criteria_index]
 
-            criteria_index = results['achievements']['criteria'].index(wqs_50_complete)
-            char_wqs = results['achievements']['criteriaQuantity'][criteria_index]
-            total_world_quests += results['achievements']['criteriaQuantity'][criteria_index]
+                criteria_index = results['achievements']['criteria'].index(wqs_50_complete)
+                char_wqs = results['achievements']['criteriaQuantity'][criteria_index]
+                total_world_quests += results['achievements']['criteriaQuantity'][criteria_index]
 
-            current_raids = ['The Emerald Nightmare', 'Trial of Valor',
-                             'The Nighthold', 'Tomb of Sargeras', 'Antorus, the Burning Throne']
-            raid_results = [raid for raid in results['progression']['raids']
-                            if raid['name'] in current_raids]
-            for raid in raid_results:
-                for boss in raid['bosses']:
-                    char_boss_kills += boss['lfrKills']
-                    char_boss_kills += boss['normalKills']
-                    char_boss_kills += boss['heroicKills']
-                    char_boss_kills += boss['mythicKills']
-            total_boss_kills += char_boss_kills
-            out_msg += (f'{name.title():{14}}{char_mplus_runs:<{5}}'
-                        f'{char_wqs:<{6}}{char_boss_kills:<{7}}\n')
-        except KeyError:
-            out_msg += (f'{name.title():{14}}{"Err":<{5}}'
-                        f'{"Err":<{6}}{"Err":<{7}}\n')
-    out_msg += (f'---------------------------------\n'
-                f'{"Total":{14}}{total_num_runs:<{5}}'
-                f'{total_world_quests:<{6}}{total_boss_kills:<{7}}\n'
-                f'```')
-    return out_msg
+                current_raids = ['The Emerald Nightmare', 'Trial of Valor',
+                                 'The Nighthold', 'Tomb of Sargeras', 'Antorus, the Burning Throne']
+                raid_results = [raid for raid in results['progression']['raids']
+                                if raid['name'] in current_raids]
+                for raid in raid_results:
+                    for boss in raid['bosses']:
+                        char_boss_kills += boss['lfrKills']
+                        char_boss_kills += boss['normalKills']
+                        char_boss_kills += boss['heroicKills']
+                        char_boss_kills += boss['mythicKills']
+                total_boss_kills += char_boss_kills
+                out_msg += (f'{name.title():{14}}{char_mplus_runs:<{5}}'
+                            f'{char_wqs:<{6}}{char_boss_kills:<{7}}\n')
+            except KeyError:
+                out_msg += (f'{name.title():{14}}{"Err":<{5}}'
+                            f'{"Err":<{6}}{"Err":<{7}}\n')
+        out_msg += (f'---------------------------------\n'
+                    f'{"Total":{14}}{total_num_runs:<{5}}'
+                    f'{total_world_quests:<{6}}{total_boss_kills:<{7}}\n'
+                    f'```')
+        return out_msg
+    return 'Could not fetch access token.'
 
 
 """
@@ -201,7 +204,8 @@ async def build_embed_obj(raiderio_data: dict, blizzard_data: dict, honor_level:
 
     # RAID PROGRESSION
     embed_obj.add_field(name='__**Raid Progression:**__',
-                        value=f'**UD:** {raiderio_data["raid_progression"]["uldir"]["summary"]:{12}}',
+                        value=(f'**UD:** {raiderio_data["raid_progression"]["uldir"]["summary"]:{12}}'
+                               f'**BoD:** {raiderio_data["raid_progression"]["battle-of-dazaralor"]["summary"]:{12}}'),
                         inline=False)
 
     # MYTHIC+ PROGRESSION
@@ -302,16 +306,16 @@ async def build_embed_obj(raiderio_data: dict, blizzard_data: dict, honor_level:
 
 
 async def build_scores_output(characters: list, num: int=10):
-    desc = (f'{"":{3}}{"Character:":{16}}{"Score:":{10}}'
-            f'{"Realm:":{8}}{"Class:":{8}}\n'
-            f'---------------------------------------------------\n')
+    desc = (f'{"":{3}}{"Character:":{14}}{"Score:":{9}}'
+            f'{"Realm:":{8}}{"Class:":}\n'
+            f'--------------------------------------------\n')
     i = 1
     for character in characters:
-        desc += (f'{i:<{3}}{character.name.title():{16}}'
-                 f'{character.m_plus_score_overall:<{10}}'
+        desc += (f'{i:<{3}}{character.name.title():{14}}'
+                 f'{character.m_plus_score_overall:<{9}}'
                  f'{character.m_plus_rank_overall:<{8}}'
                  f'{character.m_plus_rank_class}'
-                 f' - {character.char_class.title():<{8}}\n')
+                 f' - {character.char_class.title():<}\n')
         if i == num:
             break
         i += 1
@@ -339,7 +343,7 @@ async def build_readycheck(guild_members: list):
     member_count = 0
     output_msg_text = (f'```{"Name:":{14}}{"Rank:":{8}}{"HoA:":{6}}{"Weekly M+:":{11}}'
                        f'{"ilvl:":{6}}\n'
-                       f'-------------------------------------------------\n')
+                       f'--------------------------------------------\n')
     for member in guild_members:
         total_ilvl += member.ilvl
         member_count += 1
@@ -349,7 +353,7 @@ async def build_readycheck(guild_members: list):
                             f'{member.m_plus_weekly_high:<{11}}'
                             f'{member.ilvl}\n')
     avg_ilvl = round(total_ilvl/member_count)
-    output_msg_text += ('-------------------------------------------------\n'
+    output_msg_text += ('--------------------------------------------\n'
                         f'{"Avg ilvl:":{39}}{avg_ilvl:<{6}}\n\n'
                         'Remember: You need to clear a +10 (not necessarily in time) '
                         'to maximize the loot from your weekly chest.```')

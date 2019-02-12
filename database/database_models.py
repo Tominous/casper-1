@@ -28,6 +28,7 @@ class Character(Base):
     m_plus_rank_class = Column(Integer)
     m_plus_weekly_high = Column(Integer)
     honor_level = Column(Integer)
+    last_updated = Column(DateTime)
 
     def __repr__(self):
         return (f'<Character('

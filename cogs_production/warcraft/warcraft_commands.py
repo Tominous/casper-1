@@ -3,6 +3,7 @@ Author:         David Schaeffer
 Creation Date:  November 6, 2018
 Purpose:        Defines all commands for the Warcraft module
 """
+import asyncio
 
 import discord
 import requests
@@ -17,10 +18,30 @@ from database.warcraftcharacters import WarcraftCharactersDatabaseMethods
 class Warcraft:
     def __init__(self, casper):
         self.casper = casper
+        self.casper.loop.create_task(self._crawl())
+
+    async def _crawl(self):
+        await self.casper.wait_until_ready()
+        while not self.casper.is_closed():
+            guild_members = await warcraft_logic.get_guild_members('felforged',
+                                                                   'wyrmrest-accord')
+            if guild_members is not None:
+                for name, realm, rank in guild_members:
+                    try:
+                        raiderio_data = await warcraft_logic.get_raiderio_data(name, realm, 'us')
+                        blizzard_data = await warcraft_logic.get_blizzard_data(name, realm, 'us')
+                        honor_level = await warcraft_logic.scrape_prestige(name, realm)
+                        if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
+                            await WarcraftCharactersDatabaseMethods.update_character(raiderio_data, blizzard_data, honor_level, rank)
+                        else:
+                            await WarcraftCharactersDatabaseMethods.create_new_character(raiderio_data, blizzard_data, honor_level, rank)
+                        await WarcraftCharactersDatabaseMethods.claim_character(name, realm, 222207370636427264)
+                    except Exception as e:
+                        pass
+            await asyncio.sleep(600)
 
     @commands.command()
-    async def crawl(self, ctx, claim: str='no', guild_name: str='felforged',
-                    realm: str='wyrmrest-accord'):
+    async def crawl(self, ctx, claim: str, guild_name: str, realm: str):
         """
         Crawls a given guild, looking up it's members and adding them to the database.
         :param ctx: command call context.
@@ -46,7 +67,7 @@ class Warcraft:
                 if 'yes' in claim.lower():
                     await WarcraftCharactersDatabaseMethods.claim_character(name, realm, ctx.guild.id)
             except Exception as e:
-                print('Error: ', e)
+                pass
             char_index += 1
             if char_index % 5 == 0:
                 await message.edit(content=f'{char_index}/{guild_members.__len__()} '
@@ -72,8 +93,6 @@ class Warcraft:
         if raiderio_data is None:
             return await status_msg.edit(content='Could not find character profile on '
                                                  'Raider.io.')
-        # print(raiderio_data)
-        # print(blizzard_data)
         honor_level = await warcraft_logic.scrape_prestige(name, realm, region)
         if await WarcraftCharactersDatabaseMethods.character_exists(name, realm):
             await WarcraftCharactersDatabaseMethods.update_character(raiderio_data, blizzard_data, honor_level)
@@ -196,11 +215,11 @@ class Warcraft:
     async def keys(self, ctx):
         characters = await WarcraftCharactersDatabaseMethods.get_keys(ctx.guild.id)
         if len(characters) > 0:
-            desc = f'{"Character:":{14}}{"Dungeon:":{27}}{"Level:":{6}}\n' \
-                   f'------------------------------------------------\n'
+            desc = f'{"Character:":{14}}{"Dungeon:":{24}}{"Lvl:":{6}}\n' \
+                   f'--------------------------------------------\n'
             for character in characters:
                 desc += f'{character.name.title():{14}}' \
-                        f'{character.m_plus_key:{27}} ' \
+                        f'{character.m_plus_key:{24}} ' \
                         f'+{character.m_plus_key_level:<{6}}\n'
             await ctx.send(f'```{desc}```')
         else:
@@ -261,7 +280,8 @@ class Warcraft:
         if _class in ['druid']:
             return await ctx.send('https://discord.gg/0dWu0WkuetF87H9H')
         if _class in ['hunter']:
-            return await ctx.send('https://discord.gg/yqer4BX')
+            return await ctx.send('https://discord.gg/yqer4BX\n'
+                                  'https://discord.gg/G3tYdTG')
         if _class in ['mage']:
             return await ctx.send('https://discord.me/alteredtime')
         if _class in ['monk']:
@@ -269,11 +289,13 @@ class Warcraft:
         if _class in ['pally', 'paladin']:
             return await ctx.send('https://discord.gg/0dvRDgpa5xZHFfnD')
         if _class in ['priest']:
-            return await ctx.send('https://discord.gg/HowToPriest')
+            return await ctx.send('https://discord.gg/focusedwill\n'
+                                  'https://discord.gg/WarcraftPriests')
         if _class in ['rogue', 'rouge']:
             return await ctx.send('https://discord.gg/0h08tydxoNhfDVZf')
         if _class in ['shaman']:
-            return await ctx.send('https://discord.gg/earthshrine')
+            return await ctx.send('https://discord.gg/0VcupJEQX0HuE5HH\n'
+                                  'https://discord.gg/AcTek6e')
         if _class in ['warlock', 'lock']:
             return await ctx.send('https://discord.gg/0onXDymd9Wpc2CEu')
         if _class in ['warrior', 'warr']:

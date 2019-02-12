@@ -1,3 +1,4 @@
+aiohttp
 dateutil
 beautifulsoup4
 prawcore

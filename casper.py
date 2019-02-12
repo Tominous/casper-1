@@ -1,4 +1,6 @@
 import datetime
+import sys
+import traceback
 from pathlib import Path
 
 from discord.ext import commands
@@ -58,6 +60,29 @@ async def on_member_join(member):
 
 
 @casper.event
+async def on_member_remove(member):
+    for channel in member.guild.text_channels:
+        if 'general' in channel.name:
+            ch = channel
+            break
+    try:
+        return await ch.send(f'{member.name} has left the server.\n'
+                             'https://i.imgur.com/zyZeCo4.gif')
+    except TypeError:
+        # We were unable to find a "general chat"-type channel to send to.
+        return
+
+
+@casper.event
+async def on_member_ban(guild, user):
+    for channel in guild.text_channels:
+        if 'general' in channel.name:
+            await channel.send(f'{user.name} has been banned.\n'
+                               f'https://i.imgur.com/GzYCFs6.gif')
+            break  # We just want the first general chat.
+
+
+@casper.event
 async def on_command(ctx):
     """
     This trigger is just for better error logging and troubleshooting.
@@ -69,15 +94,39 @@ async def on_command(ctx):
           f'Server: {ctx.guild}\n'
           f'Channel: {ctx.message.channel}\n'
           f'Command: {ctx.message.content}\n'
-          f'Time: {datetime.datetime.now().time()}\n')
+          f'Time: {datetime.datetime.now()}\n')
     return
 
 
 @casper.event
 async def on_command_error(ctx, error):
-    if isinstance(error, commands.CheckFailure):
-        return await ctx.send(f'I\'m sorry, {ctx.author.name}, but you are currently '
-                              'banned from using any commands.')
+    # https://gist.github.com/EvieePy/7822af90858ef65012ea500bcecf1612
+    # This prevents any commands with local handlers being handled here in
+    # on_command_error.
+    if hasattr(ctx.command, 'on_error'):
+        return
+
+    ignored = (commands.CommandNotFound, commands.UserInputError)
+
+    # Allows us to check for original exceptions raised and sent to CommandInvokeError.
+    # If nothing is found. We keep the exception passed to on_command_error.
+    error = getattr(error, 'original', error)
+
+    # Anything in ignored will return and prevent anything happening.
+    # ==== My Code ====
+    if isinstance(error, ignored):
+        return
+    elif 'ban' in ctx.message.content and isinstance(error, commands.CheckFailure):
+        return await ctx.send('You are not authorized to use that command. Please '
+                              'stay where you are. Help will be arriving shortly.')
+    elif isinstance(error, commands.CheckFailure):
+        return await ctx.send(f'I\'m sorry, {ctx.author.display_name}, but you are '
+                              f'currently banned from using any commands.')
+    # ==== My Code Ends ====
+    # All other Errors not returned come here...
+    # And we can just print the default TraceBack.
+    print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 
 @casper.check

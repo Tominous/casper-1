@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 
 from sqlalchemy import desc, asc
@@ -44,6 +45,7 @@ class WarcraftCharactersDatabaseMethods:
         else:
             new_character.m_plus_weekly_high = 0
         new_character.honor_level = honor_level
+        new_character.last_updated = datetime.datetime.now()
         session.add(new_character)
         session.commit()
 
@@ -74,7 +76,7 @@ class WarcraftCharactersDatabaseMethods:
         else:
             character.m_plus_weekly_high = 0
         character.honor_level = honor_level
-        character.last_updated = date.today()
+        character.last_updated = datetime.datetime.now()
         session.add(character)
         session.commit()
 
@@ -127,7 +129,7 @@ class WarcraftCharactersDatabaseMethods:
         if sort_method == 'rank':
             results = session.query(Character).filter_by(claimed_on=guild_id).filter(
                 Character.guild_rank.in_(ranks)).order_by(asc(Character.guild_rank)).order_by(
-                desc(Character.ilvl)).all()
+                Character.name).all()
             return results
         if sort_method == 'ilvl':
             results = session.query(Character).filter_by(claimed_on=guild_id).filter(

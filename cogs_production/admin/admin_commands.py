@@ -49,7 +49,6 @@ class Admin:
         while not self.casper.is_closed():
             banned_users = await BanMethods.get_ban_list()
             for banned_user in banned_users:
-                print(banned_user.user)
                 if datetime.datetime.now() > (banned_user.banned_on +
                                               datetime.timedelta(hours=banned_user.ban_time)):
                     await BanMethods.unban_user(banned_user.user)
@@ -77,12 +76,15 @@ class Admin:
     @commands.is_owner()
     async def bans(self, ctx):
         banned_users = await BanMethods.get_ban_list()
-        output = ''
-        for banned_user in banned_users:
-            output += (f'{banned_user.user} ({banned_user.ban_time} hours) by '
-                       f'{banned_user.banned_by.title()}:\n'
-                       f'{banned_user.ban_reason}\n\n')
-        return await ctx.send(output)
+        print(banned_users)
+        if banned_users:
+            output = ''
+            for banned_user in banned_users:
+                output += (f'{banned_user.user} ({banned_user.ban_time} hours) by '
+                           f'{banned_user.banned_by.title()}:\n'
+                           f'{banned_user.ban_reason}\n\n')
+            return await ctx.send(output)
+        return await ctx.send('There are currently no banned users.')
 
 
 def setup(casper):
