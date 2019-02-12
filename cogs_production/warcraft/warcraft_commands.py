@@ -111,7 +111,8 @@ class Warcraft:
         """
         ranks = [0, 1, 3, 7]
         sent_msg = await ctx.send('Fetching raiders and trials...')
-        guild_members = await WarcraftCharactersDatabaseMethods.get_raiders(ctx.guild.id, ranks, sort_by)
+        guild_members = await WarcraftCharactersDatabaseMethods.get_raiders(
+            ctx.guild.id,ranks, sort_by.lower())
         await sent_msg.edit(content='Parsing data...')
         output_msg_text = await warcraft_logic.build_readycheck(guild_members)
         return await sent_msg.edit(content=output_msg_text)

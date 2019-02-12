@@ -338,23 +338,31 @@ async def build_honor_output(characters: list, num: int=10):
 
 
 async def build_readycheck(guild_members: list):
-    rank_names = {0: 'GM', 1: 'Officer', 3: 'Raider', 7: 'Trial'}
     total_ilvl = 0
     member_count = 0
-    output_msg_text = (f'```{"Name:":{14}}{"Rank:":{8}}{"HoA:":{6}}{"Weekly M+:":{11}}'
+    output_msg_text = (f'```{"Name:":{14}}{"Class:":{8}}{"HoA:":{6}}{"M+:":{4}}'
                        f'{"ilvl:":{6}}\n'
                        f'--------------------------------------------\n')
     for member in guild_members:
         total_ilvl += member.ilvl
         member_count += 1
-        output_msg_text += (f'{member.name.title():{14}}'
-                            f'{rank_names[member.guild_rank]:{8}}'
+        name = member.name.title()
+        if member.guild_rank == 7:
+            name += '*'
+        char_class = member.char_class.title()
+        if char_class == 'Death Knight':
+            char_class = 'DK'
+        elif char_class == 'Demon Hunter':
+            char_class = 'DH'
+        output_msg_text += (f'{name:{14}}'
+                            f'{char_class:{8}}'
                             f'{member.heart_of_azeroth_level:<{6}}'
-                            f'{member.m_plus_weekly_high:<{11}}'
+                            f'{member.m_plus_weekly_high:<{4}}'
                             f'{member.ilvl}\n')
     avg_ilvl = round(total_ilvl/member_count)
     output_msg_text += ('--------------------------------------------\n'
-                        f'{"Avg ilvl:":{39}}{avg_ilvl:<{6}}\n\n'
+                        f'{"Avg ilvl:":{32}}{avg_ilvl:<{6}}\n\n'
                         'Remember: You need to clear a +10 (not necessarily in time) '
-                        'to maximize the loot from your weekly chest.```')
+                        'to maximize the loot from your weekly chest.\n'
+                        '* denotes Trial member.```')
     return output_msg_text

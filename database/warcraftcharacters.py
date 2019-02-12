@@ -131,6 +131,11 @@ class WarcraftCharactersDatabaseMethods:
                 Character.guild_rank.in_(ranks)).order_by(asc(Character.guild_rank)).order_by(
                 Character.name).all()
             return results
+        if sort_method == 'class':
+            results = session.query(Character).filter_by(claimed_on=guild_id).filter(
+                Character.guild_rank.in_(ranks)).order_by(asc(Character.char_class)).order_by(
+                Character.name).all()
+            return results
         if sort_method == 'ilvl':
             results = session.query(Character).filter_by(claimed_on=guild_id).filter(
                 Character.guild_rank.in_(ranks)).order_by(desc(Character.ilvl)).order_by(
